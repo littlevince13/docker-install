@@ -1,0 +1,45 @@
+---
+- hosts: installdocker
+  remote_user: vince
+  become: yes
+  become_user: root
+  tasks:
+        - name: Remove Old Docker
+          yum:
+                name: 
+                 - docker
+                 - docker-ce
+                 - docker-selinux
+                 - docker-engine
+                state: removed
+                
+        - name: Install Software
+          yum:
+                name:
+                 - yum-utils
+                 - device-mapper-persistent-data
+                 - lvm2
+                state: present
+
+        - name: Download Docker Repo
+          shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+        - name: Install Docker
+          yum:
+                name: docker-ce
+                state: present
+
+        - name: Start Docker
+          service:
+                name: docker
+                state: started
+                enabled: yes
+
+        - name: Install Docker-compose
+          shell:  curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+        - name: Setup Docker-compose
+          command: "{{ item }}"
+          with_items:
+              - chmod +x /usr/local/bin/docker-compose
+              - ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
